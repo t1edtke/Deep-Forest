@@ -32,6 +32,7 @@ cdef extern from "numpy/arrayobject.h":
                                 int nd, np.npy_intp* dims,
                                 np.npy_intp* strides,
                                 void* data, int flags, object obj)
+    int PyArray_SetBaseObject(np.ndarray arr, PyObject* obj)
 
 # =============================================================================
 # Types and constants
@@ -133,8 +134,9 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
             sample_weight_ptr = <DOUBLE_t*> sample_weight.data
 
         # Initial capacity
-        cdef int init_internal_capacity
-        cdef int init_leaf_capacity
+        # cdef int init_internal_capacity
+        cdef double init_internal_capacity
+        cdef double init_leaf_capacity
 
         if tree.max_depth <= 10:
             init_internal_capacity = (2 ** (tree.max_depth + 1)) - 1
@@ -143,7 +145,7 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
             init_internal_capacity = 2047
             init_leaf_capacity = 2047
 
-        tree._resize(init_internal_capacity, init_leaf_capacity)
+        tree._resize(int(init_internal_capacity), int(init_leaf_capacity))
 
         # Parameters
         cdef Splitter splitter = self.splitter
@@ -488,7 +490,7 @@ cdef class Tree:
     cdef int _resize_value_c(self,
                              SIZE_t leaf_capacity=SIZE_MAX) nogil except -1:
         """Resize `self.value` to `leaf_capacity`.
-        
+
         Returns -1 in case of failure to allocate memory (and raise
         MemoryError) or 0 otherwise.
         """
@@ -521,9 +523,9 @@ cdef class Tree:
         that `self.nodes` does not store any information on leaf nodes except
         the id of leaf nodes. In addition, the id of leaf nodes are multiplied
         by `_TREE_LEAF` to distinguish them from the id of internal nodes.
-        
+
         The generated node id will be used to set `self.value` later.
-        
+
         Returns (size_t)(-1) on error.
         """
         cdef SIZE_t node_id = self.leaf_node_count
@@ -905,7 +907,8 @@ cdef class Tree:
         cdef np.ndarray arr
         arr = np.PyArray_SimpleNewFromData(3, shape, np.NPY_DOUBLE, self.value)
         Py_INCREF(self)
-        arr.base = <PyObject*> self
+        # arr.base = <PyObject*> self
+        PyArray_SetBaseObject(arr, <PyObject*> self)
         return arr
 
     cdef np.ndarray _get_node_ndarray(self):
@@ -926,5 +929,6 @@ cdef class Tree:
                                    strides, <void*> self.nodes,
                                    np.NPY_DEFAULT, None)
         Py_INCREF(self)
-        arr.base = <PyObject*> self
+        # arr.base = <PyObject*> self
+        PyArray_SetBaseObject(arr, <PyObject*> self)
         return arr
