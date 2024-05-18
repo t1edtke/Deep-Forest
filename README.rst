@@ -57,6 +57,10 @@ Classification
 
     from deepforest import CascadeForestClassifier
 
+    import numpy as np
+    np.bool = bool
+    np.int = int
+
     X, y = load_digits(return_X_y=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
     model = CascadeForestClassifier(random_state=1)
@@ -76,6 +80,10 @@ Regression
     from sklearn.metrics import mean_squared_error
 
     from deepforest import CascadeForestRegressor
+
+    import numpy as np
+    np.bool = bool
+    np.int = int
 
     X, y = load_boston(return_X_y=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
