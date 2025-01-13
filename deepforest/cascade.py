@@ -16,7 +16,7 @@ from sklearn.base import (
 )
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_array, check_X_y
-from sklearn.utils.multiclass import type_of_target
+from sklearn.utils.multiclass import type_of_target, class_distribution
 
 from . import _io, _utils
 from ._binner import Binner
@@ -775,6 +775,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             in ("continuous-multioutput", "multiclass-multioutput")
             else False,
         )
+
+        y = np.reshape(y, (-1, 1))
+        (self.classes_, self.n_classes_, self.class_prior_) = class_distribution(y, None)
+        self.n_classes_ = self.n_classes_[0] if isinstance(self.n_classes_, list) else self.n_classes_
 
         self._check_input(X, y)
         self._validate_params()
